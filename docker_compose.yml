@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # Master Node
+  master:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: adagds-master
+    environment:
+      - NODE_ENV=production
+      - WORKER_COUNT=3
+    ports:
+      - "9000:3000"
+    volumes:
+      - ./configs:/app/configs
+      - ./output:/app/output
+    command: npm start
+    depends_on:
+      - worker1
+      - worker2
+      - worker3
+    networks:
+      - adagds-network
+
+  # Worker Node 1
+  worker1:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: adagds-worker1
+    environment:
+      - NODE_ENV=production
+      - WORKER_ID=worker1
+    volumes:
+      - ./worker.js:/app/worker.js
+      - ./output:/app/output
+    networks:
+      - adagds-network
+    stdin_open: true
+    tty: true
+
+  # Worker Node 2
+  worker2:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: adagds-worker2
+    environment:
+      - NODE_ENV=production
+      - WORKER_ID=worker2
+    volumes:
+      - ./worker.js:/app/worker.js
+      - ./output:/app/output
+    networks:
+      - adagds-network
+    stdin_open: true
+    tty: true
+
+  # Worker Node 3
+  worker3:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: adagds-worker3
+    environment:
+      - NODE_ENV=production
+      - WORKER_ID=worker3
+    volumes:
+      - ./worker.js:/app/worker.js
+      - ./output:/app/output
+    networks:
+      - adagds-network
+    stdin_open: true
+    tty: true
+
+networks:
+  adagds-network:
+    driver: bridge
+
+volumes:
+  configs:
+  output:

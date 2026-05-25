@@ -1,0 +1,31 @@
+{
+  "name": "adagds",
+  "version": "1.0.0",
+  "description": "Adaptive Distributed Application Generation & Deployment System",
+  "main": "master.js",
+  "scripts": {
+    "start": "node master.js",
+    "setup": "bash generate_configs.sh",
+    "setup-windows": "powershell -File generate_configs.ps1",
+    "clean": "rm -rf output configs",
+    "logs": "cat output/execution_logs.json"
+  },
+  "keywords": [
+    "distributed-computing",
+    "parallel-processing",
+    "application-generation",
+    "resource-aware",
+    "multi-tenant"
+  ],
+  "author": "ADAGDS Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  }
+}

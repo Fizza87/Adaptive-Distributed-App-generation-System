@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>ADAGDS — App Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#08090c;--surface:#0e1117;--card:#131720;--border:#1e2535;--border2:#252e42;
+      --text:#e8eaf0;--muted:#5a6480;--muted2:#3d4560;
+      --accent:#4f7cff;--accent-r:79,124,255;
+      --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
+      --font:'Syne',sans-serif;--mono:'DM Mono',monospace;
+    }
+    html,body{min-height:100vh;background:var(--bg);color:var(--text);font-family:var(--font);overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:48px 48px;opacity:.3}
+    .blob{position:fixed;width:600px;height:300px;border-radius:50%;background:radial-gradient(ellipse,rgba(79,124,255,.06) 0%,transparent 70%);top:-100px;left:50%;transform:translateX(-50%);pointer-events:none}
+    .wrap{position:relative;z-index:1;max-width:1080px;margin:0 auto;padding:36px 20px 80px}
+
+    .header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:36px}
+    .logo{display:flex;align-items:center;gap:12px}
+    .logo-mark{width:42px;height:42px;border-radius:10px;background:rgba(var(--accent-r),.12);border:1px solid rgba(var(--accent-r),.25);display:flex;align-items:center;justify-content:center;font-size:20px}
+    .logo-text{font-size:18px;font-weight:800;letter-spacing:.04em}
+    .logo-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+    .hbadge{font-size:11px;font-family:var(--mono);padding:5px 14px;border:1px solid var(--border2);border-radius:20px;color:var(--muted)}
+
+    .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+    .sbox{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px}
+    .sbox-n{font-size:24px;font-weight:800}
+    .sbox-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:2px}
+
+    .layout{display:grid;grid-template-columns:1fr 400px;gap:20px;align-items:start}
+    @media(max-width:860px){.layout{grid-template-columns:1fr}}
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+    .card-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+    .card-title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+    .card-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-left:auto}
+    .card-body{padding:20px}
+
+    .field{margin-bottom:16px}
+    .lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:7px;display:block}
+    .lbl em{color:var(--red);font-style:normal;margin-left:2px}
+    input[type=text],select,textarea{width:100%;background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:11px 14px;font-size:13px;color:var(--text);font-family:var(--font);outline:none;transition:border-color .2s,box-shadow .2s}
+    input[type=text]:focus,select:focus,textarea:focus{border-color:rgba(var(--accent-r),.5);box-shadow:0 0 0 3px rgba(var(--accent-r),.07)}
+    input::placeholder,textarea::placeholder{color:var(--muted2)}
+    select option{background:#131720}
+    textarea{font-family:var(--mono);font-size:12px;resize:vertical;color:var(--green)}
+
+    .feat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .feat-btn{display:flex;align-items:center;gap:9px;padding:10px 12px;border-radius:8px;cursor:pointer;background:transparent;border:1px solid var(--border2);color:var(--muted);font-family:var(--font);font-size:12px;font-weight:600;transition:all .15s;user-select:none;text-align:left;}
+    .feat-btn:hover{border-color:rgba(var(--accent-r),.4);color:var(--text)}
+    .feat-btn.on{border-color:rgba(var(--accent-r),.6);background:rgba(var(--accent-r),.08);color:var(--text)}
+    .feat-chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;font-size:10px;}
+    .feat-btn.on .feat-chk{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    .cdots{display:flex;gap:8px;flex-wrap:wrap}
+    .cdot{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:transform .15s,border-color .15s;position:relative;flex-shrink:0}
+    .cdot.on{border-color:#fff;transform:scale(1.18)}
+    .cdot.on::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff}
+
+    .gbtn{width:100%;padding:13px;font-family:var(--font);font-size:14px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .15s,box-shadow .2s,opacity .2s;box-shadow:0 4px 20px rgba(var(--accent-r),.28);display:flex;align-items:center;justify-content:center;gap:10px;margin-top:4px;}
+    .gbtn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 28px rgba(var(--accent-r),.42)}
+    .gbtn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+    .spin{width:15px;height:15px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    #log{background:#02040a;border-radius:10px;padding:14px 16px;font-family:var(--mono);font-size:11.5px;line-height:1.9;min-height:150px;max-height:210px;overflow-y:auto;color:var(--muted);white-space:pre-wrap;}
+    #log::-webkit-scrollbar{width:4px}
+    #log::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+    #alist{display:flex;flex-direction:column;gap:10px}
+    .acard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;align-items:center;gap:12px;animation:si .3s ease both}
+    @keyframes si{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .aicon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:18px;font-size:18px;flex-shrink:0}
+    .aname{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ameta{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+    .alink{font-size:11px;font-family:var(--mono);padding:5px 12px;border-radius:6px;border:1px solid;text-decoration:none;font-weight:600;white-space:nowrap;transition:opacity .15s}
+    .alink:hover{opacity:.7}
+    .epill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+    .empty{text-align:center;padding:36px 16px;color:var(--muted2);font-size:13px}
+    .empty-i{font-size:28px;margin-bottom:8px;opacity:.4}
+
+    #toast{position:fixed;bottom:24px;right:24px;background:#0b1f10;border:1px solid #1a4020;color:var(--green);padding:12px 18px;border-radius:10px;font-size:12px;font-family:var(--mono);transform:translateY(16px);opacity:0;transition:all .3s;pointer-events:none;z-index:999}
+    #toast.show{transform:translateY(0);opacity:1}
+    .ferr{margin-top:10px;font-size:12px;color:var(--red);font-family:var(--mono);display:none}
+
+    #file-badge{display:none;margin-top:8px;font-size:11px;font-family:var(--mono);padding:6px 12px;background:rgba(20,184,166,.1);border:1px solid rgba(20,184,166,.3);border-radius:6px;color:#14b8a6;}
+  </style>
+</head>
+<body>
+<div class="blob"></div>
+<div class="wrap">
+
+  <header class="header">
+    <div class="logo">
+      <div class="logo-mark">⚡</div>
+      <div>
+        <div class="logo-text">ADAGDS</div>
+        <div class="logo-sub">App Generator Dashboard — FIXED</div>
+      </div>
+    </div>
+    <div class="hbadge" id="srv-status">● Connecting...</div>
+  </header>
+
+  <div class="stats-bar">
+    <div class="sbox"><div class="sbox-n" id="s-total">0</div><div class="sbox-l">Apps Generated</div></div>
+    <div class="sbox"><div class="sbox-n" id="s-run" style="color:var(--green)">0</div><div class="sbox-l">Running Now</div></div>
+    <div class="sbox"><div class="sbox-n" id="s-up">—</div><div class="sbox-l">Server Uptime</div></div>
+  </div>
+
+  <div class="layout">
+
+    <div style="display:flex; flex-direction:column; gap:20px;">
+      <div class="card">
+        <div class="card-head">
+          <span style="font-size:16px">🚀</span>
+          <span class="card-title">Generate New App</span>
+          <span class="card-sub">fill → click → live</span>
+        </div>
+        <div class="card-body">
+
+          <div class="field">
+            <label class="lbl" for="f-name">App / Website Name <em>*</em></label>
+            <input type="text" id="f-name" placeholder="e.g. My Shop, Ali Dashboard, Sara Blog"/>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="f-type">App Type <em>*</em></label>
+            <select id="f-type">
+              <option value="">— Select type —</option>
+              <option value="E-commerce Store">🛒 E-commerce Store</option>
+              <option value="Blog / News Portal">📰 Blog / News Portal</option>
+              <option value="Restaurant Website">🍕 Restaurant Website</option>
+              <option value="Portfolio Site">💼 Portfolio Site</option>
+              <option value="School / Education">🎓 School / Education</option>
+              <option value="Hospital / Clinic">🏥 Hospital / Clinic</option>
+              <option value="Real Estate">🏠 Real Estate</option>
+              <option value="Fitness & Gym">💪 Fitness & Gym</option>
+              <option value="Travel Agency">✈️ Travel Agency</option>
+              <option value="Custom Business">🏢 Custom Business</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="f-owner">Owner / Business Name</label>
+            <input type="text" id="f-owner" placeholder="e.g. Your Name, Your Company"/>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="f-env">Environment</label>
+            <select id="f-env">
+              <option value="production">Production</option>
+              <option value="development">Development</option>
+              <option value="staging">Staging</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Features</label>
+            <div class="feat-grid">
+              <button type="button" class="feat-btn" data-feat="auth"      onclick="toggleFeat(this)"><span class="feat-chk"></span><span>🔐</span> Auth</button>
+              <button type="button" class="feat-btn" data-feat="dashboard" onclick="toggleFeat(this)"><span class="feat-chk"></span><span>📊</span> Dashboard</button>
+              <button type="button" class="feat-btn" data-feat="api"       onclick="toggleFeat(this)"><span class="feat-chk"></span><span>⚡</span> API</button>
+              <button type="button" class="feat-btn" data-feat="search"    onclick="toggleFeat(this)"><span class="feat-chk"></span><span>🔍</span> Search</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="lbl">Accent Color</label>
+            <div class="cdots" id="cdots">
+              <div class="cdot on"   style="background:#4f7cff" data-c="#4f7cff" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#22c55e" data-c="#22c55e" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#f59e0b" data-c="#f59e0b" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#ec4899" data-c="#ec4899" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#a855f7" data-c="#a855f7" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#14b8a6" data-c="#14b8a6" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#ef4444" data-c="#ef4444" onclick="pickC(this)"></div>
+              <div class="cdot"      style="background:#f97316" data-c="#f97316" onclick="pickC(this)"></div>
+            </div>
+          </div>
+
+          <button class="gbtn" id="gbtn" onclick="generate()">
+            <span>⚡</span> Generate App
+          </button>
+          <div class="ferr" id="ferr"></div>
+
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span style="font-size:16px">📖</span>
+          <span class="card-title">Custom JSON Data</span>
+          <span class="card-sub">upload OR paste</span>
+        </div>
+        <div class="card-body">
+          
+          <div class="field">
+            <label class="lbl">Upload JSON File:</label>
+            <input type="file" id="f-json-file" accept=".json" onchange="handleFileLoad(this)"
+              style="background:var(--surface);border:1px solid var(--border2);padding:8px;font-family:var(--mono);font-size:11px;width:100%;color:var(--text);border-radius:6px;"/>
+            <div id="file-badge">📂 File loaded: <span id="file-name"></span> — <span id="file-count"></span></div>
+          </div>
+
+          <div class="field">
+            <label class="lbl" for="f-json">Raw JSON Data</label>
+            <textarea id="f-json" rows="10" placeholder='{
+  "appName": "My Custom App",
+  "appType": "Restaurant Website",
+  "ownerName": "Your Name",
+  "environment": "production",
+  "features": ["auth", "dashboard", "api"],
+  "color": "#ec4899"
+}'></textarea>
+          </div>
+          
+          <button class="gbtn" id="json-gbtn" onclick="generateFromJSON()"
+            style="background:transparent;border:1px solid var(--green);color:var(--green);box-shadow:none;">
+            <span>🛠️</span> Run Custom JSON Config
+          </button>
+          <div class="ferr" id="json-ferr"></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+
+      <div class="card">
+        <div class="card-head">
+          <span>🖥</span>
+          <span class="card-title">Build Log</span>
+          <span class="card-sub" id="log-st" style="color:var(--muted)">idle</span>
+        </div>
+        <div id="log">// ADAGDS Generator FIXED
+// Fill form, select color, click Generate
+// App builds instantly with your custom name & color</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span>📦</span>
+          <span class="card-title">Generated Apps</span>
+          <span class="card-sub" id="acnt">0 apps</span>
+        </div>
+        <div class="card-body" style="padding:14px">
+          <div id="alist">
+            <div class="empty"><div class="empty-i">🚀</div><div>No apps yet — generate your first one!</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  const EC = { production:{bg:'rgba(34,197,94,.12)',c:'#22c55e'}, development:{bg:'rgba(129,140,248,.12)',c:'#818cf8'}, staging:{bg:'rgba(245,158,11,.12)',c:'#f59e0b'} };
+  const TI = { 'E-commerce Store':'🛒','Blog / News Portal':'📰','Restaurant Website':'🍕','Portfolio Site':'💼','School / Education':'🎓','Hospital / Clinic':'🏥','Real Estate':'🏠','Fitness & Gym':'💪','Travel Agency':'✈️','Custom Business':'🏢' };
+
+  let selColor = '#4f7cff';
+  let apps = [];
+
+  function toggleFeat(btn) {
+    btn.classList.toggle('on');
+    const chk = btn.querySelector('.feat-chk');
+    chk.textContent = btn.classList.contains('on') ? '✓' : '';
+  }
+
+  function pickC(el) {
+    document.querySelectorAll('.cdot').forEach(d => d.classList.remove('on'));
+    el.classList.add('on');
+    selColor = el.dataset.c;
+    addLog(`🎨 Color selected: ${selColor}`, 'info');
+  }
+
+  function addLog(msg, t='info') {
+    const el = document.getElementById('log');
+    const colors = { info:'#3d4560', success:'#22c55e', error:'#ef4444', warn:'#f59e0b', hi:'#4f7cff' };
+    const ts = new Date().toLocaleTimeString();
+    el.innerHTML += `\n<span style="color:#1e2535">[${ts}]</span> <span style="color:${colors[t]||colors.info}">${msg}</span>`;
+    el.scrollTop = el.scrollHeight;
+  }
+
+  async function generate() {
+    const name  = document.getElementById('f-name').value.trim();
+    const type  = document.getElementById('f-type').value;
+    const owner = document.getElementById('f-owner').value.trim();
+    const env   = document.getElementById('f-env').value;
+    const ferr  = document.getElementById('ferr');
+    ferr.style.display = 'none';
+
+    if (!name) { ferr.textContent = '⚠ App name is required'; ferr.style.display='block'; return; }
+    if (!type) { ferr.textContent = '⚠ Please select an app type'; ferr.style.display='block'; return; }
+
+    const features = Array.from(document.querySelectorAll('.feat-btn.on')).map(b => b.dataset.feat);
+    
+    // ✅ CRITICAL FIX: Dono keys bhejna - displayName aur appName
+    await sendBuildRequest({ 
+      appName: name, 
+      displayName: name,  // ✅ Add this
+      appType: type, 
+      ownerName: owner, 
+      features, 
+      environment: env, 
+      accentColor: selColor,  // ✅ Correct key
+      color: selColor         // ✅ Backup key
+    }, 'gbtn');
+  }
+
+  async function generateFromJSON() {
+    const jsonArea = document.getElementById('f-json');
+    const jsonFerr = document.getElementById('json-ferr');
+    jsonFerr.style.display = 'none';
+
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonArea.value.trim());
+    } catch (e) {
+      jsonFerr.textContent = '✗ Invalid JSON!';
+      jsonFerr.style.display = 'block';
+      return;
+    }
+
+    let payload;
+
+    // ✅ Ayah array
+    if (Array.isArray(parsed)) {
+      addLog('📖 Ayah array detected!', 'warn');
+      addLog(`Total ${parsed.length} ayahs found.`, 'success');
+
+      const formName  = document.getElementById('f-name').value.trim();
+      const formOwner = document.getElementById('f-owner').value.trim();
+      const formEnv   = document.getElementById('f-env').value;
+      const formFeats = Array.from(document.querySelectorAll('.feat-btn.on')).map(b => b.dataset.feat);
+
+      addLog(`📝 Name: "${formName || 'Quran Portal'}" | Color: ${selColor}`, 'hi');
+
+      payload = {
+        appName:     formName  || 'Quran Portal',
+        displayName: formName  || 'Quran Portal',
+        appType:     'Quran Ayah Portal',
+        ownerName:   formOwner || 'Developer',
+        environment: formEnv   || 'production',
+        features:    formFeats.length ? formFeats : ['api', 'dashboard'],
+        accentColor: selColor,
+        color:       selColor,
+        quranData:   parsed,
+      };
+    }
+    // Ayah object with data/ayahs key
+    else if (parsed && (parsed.data || parsed.ayahs || parsed.ayahData)) {
+      addLog('📖 Ayah object detected!', 'warn');
+      const ayahArray = parsed.data || parsed.ayahs || parsed.ayahData;
+
+      const formName  = document.getElementById('f-name').value.trim();
+      const formOwner = document.getElementById('f-owner').value.trim();
+      const formEnv   = document.getElementById('f-env').value;
+
+      payload = {
+        appName:     formName  || parsed.appName  || 'Quran Portal',
+        displayName: formName  || parsed.appName  || 'Quran Portal',
+        appType:     'Quran Ayah Portal',
+        ownerName:   formOwner || parsed.ownerName || 'Developer',
+        environment: formEnv   || parsed.environment || 'production',
+        features:    parsed.features || ['api', 'dashboard'],
+        accentColor: selColor,
+        color:       selColor,
+        quranData:   ayahArray,
+      };
+    }
+    // Normal config object
+    else {
+      const formName  = document.getElementById('f-name').value.trim();
+      const formOwner = document.getElementById('f-owner').value.trim();
+
+      payload = {
+        ...parsed,
+        appName:     formName  || parsed.appName,
+        displayName: formName  || parsed.displayName || parsed.appName,
+        ownerName:   formOwner || parsed.ownerName,
+        accentColor: parsed.accentColor || parsed.color || selColor,
+        color:       parsed.color || selColor,
+      };
+    }
+
+    if (!payload.appName || !payload.appType) {
+      jsonFerr.textContent = '✗ JSON mein "appName" aur "appType" hona chahiye.';
+      jsonFerr.style.display = 'block';
+      return;
+    }
+
+    addLog(`Config ready: "${payload.appName}" | Color: ${payload.accentColor}`, 'hi');
+    await sendBuildRequest(payload, 'json-gbtn');
+  }
+
+  async function sendBuildRequest(bodyData, btnId) {
+    const btn = document.getElementById(btnId);
+    const origHTML = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<div class="spin"></div> Processing...';
+    document.getElementById('log-st').textContent = 'building';
+    document.getElementById('log-st').style.color = '#f59e0b';
+
+    addLog(`Building: "${bodyData.appName}"`, 'hi');
+    addLog(`Color: ${bodyData.accentColor} | Owner: ${bodyData.ownerName}`, 'info');
+    await wait(400);
+
+    try {
+      const res = await fetch('/api/generate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(bodyData),
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        addLog('✓ Build successful!', 'success');
+        addLog(`✓ App live at port :${data.app.port}`, 'success');
+        apps.unshift(data.app);
+        renderApps();
+        updateStats();
+        toast(`✓ "${bodyData.appName}" launched!`);
+      } else {
+        addLog('✗ Build failed: ' + data.error, 'error');
+      }
+    } catch(e) {
+      addLog('✗ Connection error: ' + e.message, 'error');
+    }
+
+    btn.disabled = false;
+    btn.innerHTML = origHTML;
+    document.getElementById('log-st').textContent = 'idle';
+    document.getElementById('log-st').style.color = 'var(--muted)';
+  }
+
+  function renderApps() {
+    const el = document.getElementById('alist');
+    document.getElementById('acnt').textContent = apps.length + ' app' + (apps.length!==1?'s':'');
+    if (!apps.length) { el.innerHTML='<div class="empty"><div class="empty-i">🚀</div><div>No apps yet!</div></div>'; return; }
+    el.innerHTML = apps.map(a => {
+      const ec = EC[a.environment] || EC.production;
+      const ic = TI[a.appType] || '📖';
+      const tm = new Date(a.generatedAt).toLocaleTimeString();
+      return `<div class="acard">
+        <div class="aicon" style="background:${a.accentColor}18;border:1px solid ${a.accentColor}30">${ic}</div>
+        <div style="flex:1;min-width:0">
+          <div class="aname">${a.displayName}</div>
+          <div class="ameta"><span class="epill" style="background:${ec.bg};color:${ec.c}">${a.environment}</span> &nbsp;:${a.port} · ${tm}</div>
+        </div>
+        <a class="alink" href="${a.endpoint}" target="_blank" style="color:${a.accentColor};border-color:${a.accentColor}44">Open ↗</a>
+      </div>`;
+    }).join('');
+  }
+
+  function updateStats() {
+    document.getElementById('s-total').textContent = apps.length;
+    document.getElementById('s-run').textContent   = apps.filter(a=>a.status==='running').length;
+  }
+
+  function toast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4000);
+  }
+
+  function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  async function pollServer() {
+    try {
+      const r = await fetch('/api/health');
+      const d = await r.json();
+      document.getElementById('srv-status').textContent = '● Server online';
+      document.getElementById('srv-status').style.color = '#22c55e';
+      document.getElementById('s-up').textContent = d.uptime;
+      const ar = await fetch('/api/apps');
+      const ad = await ar.json();
+      if (ad.apps.length > apps.length) { apps = ad.apps; renderApps(); updateStats(); }
+    } catch {
+      document.getElementById('srv-status').textContent = '● Server offline';
+      document.getElementById('srv-status').style.color = '#ef4444';
+    }
+    setTimeout(pollServer, 3000);
+  }
+  pollServer();
+
+  function handleFileLoad(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const content = e.target.result;
+      document.getElementById('f-json').value = content;
+
+      const badge   = document.getElementById('file-badge');
+      const nameEl  = document.getElementById('file-name');
+      const countEl = document.getElementById('file-count');
+
+      nameEl.textContent = file.name;
+
+      try {
+        const parsed = JSON.parse(content);
+        if (Array.isArray(parsed)) {
+          countEl.textContent = parsed.length + ' ayahs detected ✓';
+        } else {
+          countEl.textContent = 'Config object detected ✓';
+        }
+      } catch {
+        countEl.textContent = 'Parse check pending';
+      }
+
+      badge.style.display = 'block';
+      addLog(`📂 File "${file.name}" loaded. Form mein naam/color set karo phir Run dabao.`, 'warn');
+    };
+    reader.readAsText(file);
+  }
+</script>
+</body>
+</html>
