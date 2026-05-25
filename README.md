@@ -11,7 +11,7 @@ The backend distributed engine processes these configurations and automatically 
 
 ---
 
-## 🏗️ System Architecture
+##  System Architecture
 
 The system follows a resilient and scalable **Master-Worker Architecture** designed for parallel processing and efficient workload distribution.
 
@@ -52,7 +52,7 @@ Maintains isolated tenant configurations to ensure:
 
 ---
 
-## 🛠️ Technologies & Tools
+##  Technologies & Tools
 
 ### Backend
 - Node.js
